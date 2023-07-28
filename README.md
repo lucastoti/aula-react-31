@@ -1,1 +1,7 @@
-# aula-react-31
+# React Starter
+
+## Setup
+
+`npm install`
+
+`npm run start`
