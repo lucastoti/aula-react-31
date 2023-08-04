@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button, ProgressBar, ListGroup } from 'react-bootstrap';
+import './HomePage.css';
+
+// import ListGroup from 'react-bootstrap/ListGroup';
+// import Button from 'react-bootstrap/Button';
+// import ProgressBar from 'react-bootstrap/ProgressBar';
 
 const App = () => {
-  const [tutoriais, setTutoriais] = useState(null);
+  const [tutoriais, setTutoriais] = useState([]);
   const [id, setId] = useState(null);
   const [tutorial, setTutorial] = useState(null);
 
@@ -10,11 +16,26 @@ const App = () => {
   const [descricao, setDescricao] = useState(null);
   const [publicado, setPublicado] = useState(false);
 
+  const [novaDescricao, setNovaDescricao] = useState(null);
+
+  useEffect(() => {
+    console.log('vai executar em qualquer evento da tela');
+    // requisição, click de um botao que tem alguma ação, mudança no input
+  });
+
+  useEffect(() => {
+    trazerLista();
+  }, []); // só vai ser executado no primeiro load da página (carregar a primeira vez)
+
+  useEffect(() => {
+    console.log('titulo mudou');
+  }, [titulo]); // vai ser executado sempre que a variável mudar de valor
+
   const trazerLista = () => {
-    fetch('http://localhost:9000/api/tutorials')
+    fetch('https://dummyjson.com/products')
     .then(data => data.json()) 
     .then(resposta => {
-      setTutoriais(resposta);
+      setTutoriais(resposta.products);
     })
     .catch(err => console.log('Erro de solicitação', err));
   };
@@ -32,9 +53,8 @@ const App = () => {
       headers: {"Content-type": "application/json; charset=UTF-8"}
     })
     .then(data => data.json()) 
-    .then(response => console.log(response))
+    .then(response => trazerLista())
     .catch(err => console.log(err));
-
   };
 
   const buscarPorID = () => {
@@ -51,27 +71,65 @@ const App = () => {
     .catch(err => console.log('Erro de solicitação', err));
   };
 
-  // GET e POST
-  // buscar lista, buscar para um unico tutorial, criar tutorial
+  const deletarPorID = () => {
+    const URL = 'http://localhost:9000/api/tutorials/' + id;
+    fetch(URL, {
+      method: "DELETE"
+    })
+    .then(data => data.json()) 
+    .then(response => trazerLista())
+    .catch(err => console.log(err));
+  };
 
-  // pendente: deletar tutorial, atualizar tutorial
+  const atualizarPorID = () => {
+    const URL = 'http://localhost:9000/api/tutorials/' + id;
+    const atualizarTutorial = {
+      description: novaDescricao
+    };
+    fetch(URL, {
+      method: "PUT", // PATCH
+      body: JSON.stringify(atualizarTutorial),
+      headers: {"Content-type": "application/json; charset=UTF-8"}
+    })
+    .then(data => data.json()) 
+    .then(response => trazerLista())
+    .catch(err => console.log(err));
+  };
+  // GET, POST, PUT/PATCH, DELETE
+
+  // for ou map
 
   return (
-    <div>
-      <div>
-        <button onClick={trazerLista}>Trazer a lista de tutoriais</button>
+    <div style={{padding: '30px'}}>
+      {/*{JSON.stringify(tutoriais)}*/}
+      <ListGroup>
+        {
+          tutoriais.length ? 
+            tutoriais.map(tutorial => {
+              return <ListGroup.Item key={tutorial.id}>{tutorial.id} - {tutorial.title} - {tutorial.description}</ListGroup.Item>
+            })
+          : <div></div>
+        }
+      </ListGroup>
+{/*      <div>
+        <button
+          className="botao-azul"
+          onClick={trazerLista}
+        >
+          Trazer a lista de tutoriais
+        </button>
         {tutoriais !== null ? JSON.stringify(tutoriais) : 'Variável vazia' }
       </div>
       <br />----------------<br />
       <div>
-        Buscar por ID
+        <span className="titulo">Buscar por ID</span>
         <input type="number" onChange={(e) => setId(e.target.value)} />
         <button onClick={buscarPorID}>Buscar</button><br/>
         {tutorial !== null ? tutorial.title : 'Variável vazia' }
-      </div>
+      </div>*/}
       <br />----------------<br />
       <div>
-        Titulo
+        <span>Titulo</span>
         <input type="text" onChange={(e) => setTitulo(e.target.value)} />
       </div>
       <div>
@@ -85,6 +143,22 @@ const App = () => {
       <div>
         <button onClick={criarTutorial}>Criar</button>
       </div>
+      <br />----------------<br />
+      <div>
+        Deletar por ID
+        <input type="number" onChange={(e) => setId(e.target.value)} />
+        <button onClick={deletarPorID}>Deletar</button><br/>
+      </div>
+      <br />----------------<br />
+           <br />----------------<br />
+      <div>
+        Atualizar por ID
+        <input type="number" onChange={(e) => setId(e.target.value)} /><br />
+        Nova descrição:<input type="text" onChange={(e) => setNovaDescricao(e.target.value)} />
+        <button onClick={atualizarPorID}>Atualizar</button><br/>
+      </div>
+      <br />----------------<br />
+      <br /><br /><br /><br /><br /><br /><br />
     </div>
   );
 };

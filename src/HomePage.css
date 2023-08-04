@@ -1,0 +1,14 @@
+.botao-azul {
+	background-color: blue;
+	border-radius: 10px;
+	width: 100px;
+}
+.botao-azul:hover {
+	background-color: darkblue;
+
+}
+
+.titulo {
+	font-size: 30px;
+	font-weight: bold;
+}

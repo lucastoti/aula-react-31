@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   entry: path.resolve(__dirname, "src/index.jsx"),
+  mode: 'development',
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "[name].bundle.js"
@@ -27,7 +28,11 @@ module.exports = {
           // the babel-loader is used to transpile source to native javascript code
           loader: "babel-loader",
         }
-      }
+      },
+      {
+        test: /\.css$/,
+        use:['style-loader','css-loader']
+      },
     ]
   }
 };
