@@ -1,164 +1,125 @@
 import React, { useState, useEffect } from 'react';
-import { Button, ProgressBar, ListGroup } from 'react-bootstrap';
 import './HomePage.css';
-
-// import ListGroup from 'react-bootstrap/ListGroup';
-// import Button from 'react-bootstrap/Button';
-// import ProgressBar from 'react-bootstrap/ProgressBar';
+import { Button, Col, Form, InputGroup, Row, ListGroup, Modal } from 'react-bootstrap';
+import { ListaProdutos } from './components/listaProdutos';
 
 const App = () => {
-  const [tutoriais, setTutoriais] = useState([]);
-  const [id, setId] = useState(null);
-  const [tutorial, setTutorial] = useState(null);
-
-  // Formulário para criar um tutorial
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState(null);
-  const [publicado, setPublicado] = useState(false);
-
-  const [novaDescricao, setNovaDescricao] = useState(null);
-
-  useEffect(() => {
-    console.log('vai executar em qualquer evento da tela');
-    // requisição, click de um botao que tem alguma ação, mudança no input
-  });
+  const [produtos, setProdutos] = useState([]);
+  const [showAdicionar, setShowAdicionar] = useState(false);
+  const [state, setState] = useState({title: '', description: ''});
+  const [validated, setValidated] = useState(false);
 
   useEffect(() => {
     trazerLista();
-  }, []); // só vai ser executado no primeiro load da página (carregar a primeira vez)
-
-  useEffect(() => {
-    console.log('titulo mudou');
-  }, [titulo]); // vai ser executado sempre que a variável mudar de valor
+  }, []);
 
   const trazerLista = () => {
     fetch('https://dummyjson.com/products')
     .then(data => data.json()) 
     .then(resposta => {
-      setTutoriais(resposta.products);
+      setProdutos(resposta.products);
     })
     .catch(err => console.log('Erro de solicitação', err));
   };
 
-  const criarTutorial = () => {
-    const parametros = {
-      title: titulo,
-      description: descricao,
-      published: publicado
-    };
-
-    fetch('http://localhost:9000/api/tutorials', {
-      method: "POST",
-      body: JSON.stringify(parametros),
-      headers: {"Content-type": "application/json; charset=UTF-8"}
-    })
-    .then(data => data.json()) 
-    .then(response => trazerLista())
-    .catch(err => console.log(err));
+  const adicionarProduto = () => {
+    setShowAdicionar(true);
   };
 
-  const buscarPorID = () => {
-    const URL = 'http://localhost:9000/api/tutorials/' + id;
-    fetch(URL)
+  const handleSubmit = (event) => {
+    const form = event.currentTarget;
+    if (form.checkValidity()) { // caso de sucesso
+      setProdutos(anterior => {
+        let produtosAntigos = anterior;
+        produtosAntigos.push({ id: produtos.length + 1, title: state.title, description: state.description });
+        return produtosAntigos;
+      });
+      setShowAdicionar(false);
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    setValidated(true);
+  };
+
+  const handleChange = e => {
+    setState(anterior => { 
+      return { 
+        ...anterior,
+        [e.target.name]: e.target.value 
+      } 
+    });
+  };
+
+  const buscarProduto = e => {
+    fetch(`https://dummyjson.com/products/search?q=${e.target.value}`)
     .then(data => data.json()) 
     .then(resposta => {
-      if (resposta.title) {
-        setTutorial(resposta);
-      } else {
-        alert(resposta.message)
-      }
+      setProdutos(resposta.products);
     })
     .catch(err => console.log('Erro de solicitação', err));
   };
-
-  const deletarPorID = () => {
-    const URL = 'http://localhost:9000/api/tutorials/' + id;
-    fetch(URL, {
-      method: "DELETE"
-    })
-    .then(data => data.json()) 
-    .then(response => trazerLista())
-    .catch(err => console.log(err));
-  };
-
-  const atualizarPorID = () => {
-    const URL = 'http://localhost:9000/api/tutorials/' + id;
-    const atualizarTutorial = {
-      description: novaDescricao
-    };
-    fetch(URL, {
-      method: "PUT", // PATCH
-      body: JSON.stringify(atualizarTutorial),
-      headers: {"Content-type": "application/json; charset=UTF-8"}
-    })
-    .then(data => data.json()) 
-    .then(response => trazerLista())
-    .catch(err => console.log(err));
-  };
-  // GET, POST, PUT/PATCH, DELETE
-
-  // for ou map
 
   return (
     <div style={{padding: '30px'}}>
-      {/*{JSON.stringify(tutoriais)}*/}
-      <ListGroup>
-        {
-          tutoriais.length ? 
-            tutoriais.map(tutorial => {
-              return <ListGroup.Item key={tutorial.id}>{tutorial.id} - {tutorial.title} - {tutorial.description}</ListGroup.Item>
-            })
-          : <div></div>
-        }
-      </ListGroup>
-{/*      <div>
-        <button
-          className="botao-azul"
-          onClick={trazerLista}
-        >
-          Trazer a lista de tutoriais
-        </button>
-        {tutoriais !== null ? JSON.stringify(tutoriais) : 'Variável vazia' }
-      </div>
-      <br />----------------<br />
-      <div>
-        <span className="titulo">Buscar por ID</span>
-        <input type="number" onChange={(e) => setId(e.target.value)} />
-        <button onClick={buscarPorID}>Buscar</button><br/>
-        {tutorial !== null ? tutorial.title : 'Variável vazia' }
-      </div>*/}
-      <br />----------------<br />
-      <div>
-        <span>Titulo</span>
-        <input type="text" onChange={(e) => setTitulo(e.target.value)} />
-      </div>
-      <div>
-        Descrição
-        <input type="text" onChange={(e) => setDescricao(e.target.value)} />
-      </div>
-      <div>
-        Publicado
-        <input type="checkbox" onClick={(e) => setPublicado(e.target.checked)} />
-      </div>
-      <div>
-        <button onClick={criarTutorial}>Criar</button>
-      </div>
-      <br />----------------<br />
-      <div>
-        Deletar por ID
-        <input type="number" onChange={(e) => setId(e.target.value)} />
-        <button onClick={deletarPorID}>Deletar</button><br/>
-      </div>
-      <br />----------------<br />
-           <br />----------------<br />
-      <div>
-        Atualizar por ID
-        <input type="number" onChange={(e) => setId(e.target.value)} /><br />
-        Nova descrição:<input type="text" onChange={(e) => setNovaDescricao(e.target.value)} />
-        <button onClick={atualizarPorID}>Atualizar</button><br/>
-      </div>
-      <br />----------------<br />
-      <br /><br /><br /><br /><br /><br /><br />
+        <Button onClick={adicionarProduto}>+ Produto</Button>
+        <InputGroup className="mb-3 pt-3">
+          <InputGroup.Text id="basic-addon1">Buscar</InputGroup.Text>
+          <Form.Control
+            placeholder="Nome"
+            aria-label="nome"
+            aria-describedby="basic-addon1"
+            onChange={(e) => buscarProduto(e)}
+          />
+        </InputGroup>
+
+      {
+        produtos.length ? <ListaProdutos lista={produtos} /> : <></>
+      }
+
+      <Modal show={showAdicionar} onHide={() => setShowAdicionar(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Adicionar Produto</Modal.Title>
+        </Modal.Header>
+        <Form noValidate validated={validated} onSubmit={handleSubmit}>
+          <Modal.Body>
+            <Form.Group>
+              <Form.Label>Titulo</Form.Label>
+              <InputGroup hasValidation>
+                <Form.Control
+                  name="title"
+                  type="text"
+                  placeholder="Titulo"
+                  onChange={handleChange}
+                  required
+                />
+                <Form.Control.Feedback type="invalid">
+                  Campo obrigatório.
+                </Form.Control.Feedback>
+              </InputGroup>
+            </Form.Group>
+            <Form.Group className="pt-3">
+              <Form.Label>Descrição</Form.Label>
+              <InputGroup hasValidation>
+                <Form.Control
+                  name="description"
+                  type="text"
+                  placeholder="Descrição"
+                  onChange={handleChange}
+                  required
+                />
+                <Form.Control.Feedback type="invalid">
+                  Campo obrigatório.
+                </Form.Control.Feedback>
+              </InputGroup>
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+              <Button variant="primary" type="submit">Criar</Button>
+              <Button variant="secondary" onClick={() => setShowAdicionar(false)}>Cancelar</Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+      <div className="pt-5"></div>
     </div>
   );
 };
